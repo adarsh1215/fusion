@@ -5,3 +5,13 @@
 *{
   font-family: Outfit;
 }
+
+.placeholder-color {
+  color: #e0e0e0;
+  font-weight: 300;
+}
+
+.from-teal-50 {
+  --tw-gradient-from: var(--color-teal-50);
+    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), oklch(0.5 0.07 177.64) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
+}

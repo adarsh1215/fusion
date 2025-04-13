@@ -1,13 +1,72 @@
-import React from 'react'
+import React, {useState, useContext} from 'react'
+import {assets} from "../assets/assets"
+import {AppContext} from "../context/AppContext"
+import axios from "axios"
+import { toast } from 'react-toastify';
 
 const Header = () => {
+
+  const [image, setImage] = useState(assets.sample_img_1)
+  const [isImageLoaded, setIsImageLoaded] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [prompt, setPrompt] = useState("")
+  const {token, loadCreditsData, backendUrl} = useContext(AppContext)
+
+  const genImage = async () => {
+    try {
+      const {data} = await axios.post(backendUrl + "/api/image/generate-image", {prompt}, {
+        headers: {token}
+      })
+
+      if (data.success) {
+        loadCreditsData()
+        return data.image
+      } else {
+        toast.error(data.message) 
+      }
+    } catch (error) { 
+      toast.error(error.message)
+    }
+  }
+
+  const onSubmitHandler = async (e) => {
+    e.preventDefault()
+    if (prompt != "") {
+      setLoading(true)
+      const img = await genImage()
+      if (img) {
+        setImage(img)
+        setIsImageLoaded(true)
+      }
+    }
+    setLoading(false)
+  }
+
   return (
-    <div className = 'flex flex-col justify-center items-center text-cnter my-20'>
-        <div className = 'text-stone-50 inline-flex text-cnter gap-2 bg-white px-6 py-1 rounded-full border border-neutral-500'>
-            <p>Best text to image generater</p>
-        </div>
+    <form onSubmit = {onSubmitHandler} className = "flex flex-col min-h-[90vh] justify-center items-center">
+     <div>
+      <div className = "relative">
+        <img src = {image} alt = "" className = "max-w-sm rounded" />
+        <span className = {`absolute bottom-0 left-0 h-1 bg-blue-500 ${loading ? "w-full transition-all duration-[10s]" : "w-0"}`} />
+      </div>
+      <p className = {!loading ? "hidden" : ""}>Loading...</p>
+     </div>
+
+     {!isImageLoaded ?
+     <div className = "flex w-full max-w-xl bg-neutral-500 text-white text-sm p-0.5 mt-10 rounded-full">
+      <input onChange = {e => setPrompt(e.target.value)} type = "text" placeholder = "Prompt" className = "flex-1 bg-transparent outline-none ml-8 max-sm:w-20 placeholder-color" />
+      <button type = "submit" className = "bg-zinc-900 px-10 sm:px-16 py-3 rounded-full">
+        Generate
+      </button>
+     </div>
+     :
+    <div className = "flex gap-2 flex-wrap justify-center text-white text-sm p-0.5 mt-10 rounded-full">
+      <p onClick = {() => setIsImageLoaded(false)} className = "bg-transparent border border-zinc-900 text-black px-8 py-3 rounded-full cursor-pointer">Generte Another</p>
+      <a href = {image} download className = "bg-zinc-900 px-10 py-3 rounded-full cursor-pointer">Download</a>
     </div>
+    }
+     </form>
   )
-}
+} 
 
 export default Header
